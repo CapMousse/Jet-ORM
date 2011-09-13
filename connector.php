@@ -6,13 +6,14 @@ class OrmConnector {
         $connector;
     
     public static
+        $config = array(),
         $quoteSeparator;
     
     protected function __construct(){
         if (!is_object(self::$connector)) {
-            $connectionString = Jet::$config['type'].":host=".Jet::$config['host'].";dbname=".Jet::$config['base'];
-            $username = Jet::$config['log'];
-            $password = Jet::$config['pass'];
+            $connectionString = self::$config['type'].":host=".self::$config['host'].";dbname=".self::$config['base'];
+            $username = self::$config['log'];
+            $password = self::$config['pass'];
             
             try{
                 $connector = new PDO($connectionString, $username, $password, null);

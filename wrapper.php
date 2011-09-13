@@ -12,14 +12,19 @@ class OrmWrapper {
         $_distinct = false,
         $_resultSelector = array("*"),
         $_data = array(),
+        $_dirty = array(),
         $_values = array(),
         $_join = array(),
+        $_joinTables = array(),
         $_where = array(),
         $_limit = null,
         $_offset = null,
         $_order = null,
         $_orderBy = array(),
         $_groupBy = array();
+    
+    public static
+        $log = array();
     
     /*
      * Wrapper constructor
@@ -30,6 +35,7 @@ class OrmWrapper {
     function __construct(){
         $this->connector = OrmConnector::getInstance();
         $this->parseTableName();
+        $this->setIdName('id_'.str_replace(OrmConnector::$quoteSeparator, '', $this->tableName));
     }
     
     /*
@@ -40,7 +46,7 @@ class OrmWrapper {
      */
     private function parseTableName(){
         $this->class = get_called_class();
-        $this->tableName = strtolower(preg_replace('/(?!^)[[:upper:]]/', '_\0', $this->class));
+        $this->tableName = $this->setQuotes(strtolower(preg_replace('/(?!^)[[:upper:]]/', '_\0', $this->class)));
     }
     
     /*
@@ -56,10 +62,14 @@ class OrmWrapper {
         }
         
         $query = $this->buildSelect();
-        Debug::log($query);
+        self::$log[] = $query;
         
-        $query = $this->connector->prepare($query);
-        $query->execute($this->_values);
+        try{
+            $query = $this->connector->prepare($query);
+            $query->execute($this->_values);
+        }catch(Exception $e){
+            self::$log[] = $e;
+        }
         
         $rows = array();
         while($row = $query->fetch(PDO::FETCH_ASSOC)){
@@ -102,7 +112,7 @@ class OrmWrapper {
             $resultColumns = 'DISTINCT '.$resultColumns;
         }
 
-        $fragment = "SELECT {$resultColumns} FROM " . $this->setQuotes($this->tableName);
+        $fragment = "SELECT {$resultColumns} FROM " . $this->tableName;
 
         return $fragment;
     }
@@ -214,7 +224,11 @@ class OrmWrapper {
     private function buildInsert(){
         $listFields = array_map(array($this, "setQuotes"), array_keys($this->_data));
         $values = $this->createPlaceholder($this->_data);
-        $query = "INSERT INTO ".$this->setQuotes($this->tableName)." (".join(", ", $listFields).") VALUES ($values)";
+        
+        $table = $this->tableName;
+        $listFields = join(", ", $listFields);
+        
+        $query = "INSERT INTO $table ($listFields) VALUES ($values)";
         
         return $query;
     }
@@ -229,11 +243,16 @@ class OrmWrapper {
     private function buildUpdate(){
         $listFields = array();
         
-        foreach($this->_data as $field => $value){
-            $listFields[] = "$field = ?";
+        foreach($this->_dirty as $field => $value){
+            $listFields[] = $this->setQuotes($field)." = ?";
         }
         
-        $query = "UPDATE ".$this->setQuotes($this->tableName)." SET ".join(", ", $listFields)." WHERE ".$this->_idSelector." = ?";
+        $table = $this->tableName;
+        $join = $this->buildJoin();
+        $listFields = join(", ", $listFields);
+        $id = $this->setQuotes($this->_idSelector);
+        
+        $query = "UPDATE $table $join SET $listFields WHERE $table.$id = ?";
         
         return $query;
     }
@@ -247,7 +266,6 @@ class OrmWrapper {
      * @return  current model
      */
     private function hydrate($data = array()){
-        $this->_data = $data;
         $this->_data = $data;
         return $this;
     }
@@ -299,7 +317,7 @@ class OrmWrapper {
      * @return  Model
      */
     private function createInstance($row){
-        $instance = new $this->class;
+        $instance = clone $this;
         $instance->hydrate($row);
         return $instance;
     }
@@ -337,7 +355,7 @@ class OrmWrapper {
      * @return  current model
      */
     public function setIdName($name){
-        $this->_id = $name;
+        $this->_idSelector = $name;
         
         return $this;
     }
@@ -383,15 +401,16 @@ class OrmWrapper {
      * Create a join query
      * 
      * @param   string $type        type of join
-     * @param   string $table       table to be join
+     * @param   object $table       table to be join
      * @param   array/string $condition   condition of the join
      * @return  current model
      */
-    public function join($type, $table, $conditions){
+    public function join($type, OrmWrapper $table, $conditions){
         $type = trim(strtoupper($type)." JOIN");
-        $table = $this->setQuotes($table);
+        $joinTable = $table->tableName;
         
-        $this->_join[] = "$type $table ON ".$this->listJoinCondition($conditions);
+        $this->_joinTables[] = $joinTable;
+        $this->_join[] = "$type $joinTable ON ".$this->listJoinCondition($conditions);
         
         return $this;
     }
@@ -404,10 +423,36 @@ class OrmWrapper {
      */
     private function listJoinCondition($conditions){
         if(is_array($conditions)){
-            return join(" AND ", $conditions);
+            $returnedConditions = "";
+            
+            foreach($conditions as $key => $value){
+                $returnedConditions[] = ($key ? $key : "").$this->makeJoinCondition($value);
+            }
+            
+            return join(" ", $returnedConditions);
         }
         
         return $conditions;
+    }
+    
+    /*
+     * listJoinCondition
+     * 
+     * @param   array/string    $conditions
+     * @return  string
+     */
+    private function makeJoinCondition($condition){
+        if(is_array($condition)){
+            
+            $joinTable = array_pop($this->_joinTables);
+            list($firstCol, $statement, $lastCol) = $condition;
+            $firstCol = $this->tableName.".".$this->setQuotes($firstCol);
+            $lastCol = "$joinTable.".$this->setQuotes($lastCol);
+            
+            return "$firstCol $statement $lastCol";
+        }
+        
+        return $condition;
     }
     
     /*
@@ -513,7 +558,7 @@ class OrmWrapper {
         }
         
         $query = "";
-        $values = array_values($this->_data);
+        $values = array_values($this->_dirty);
         
         if($this->_isNew){
             $query = $this->buildInsert();
@@ -526,13 +571,16 @@ class OrmWrapper {
             $values[] = $this->getId();
         }
         
-        Debug::log($query);
+        self::$log[] = $query;
+        self::$log[] = $values;
+        
+        $success = false;
         
         try{
             $query = $this->connector->prepare($query);
             $success = $query->execute($values);
         }catch(Exception $e){
-            Debug::log($e);
+            self::$log[] = $e;
         }
         
         if($this->_isNew){
@@ -554,16 +602,16 @@ class OrmWrapper {
      * @return  boolean
      */
     public function delete(){
-        $query = "DELETE FROM ".$this->setQuotes($this->tableName)." WHERE ".$this->setQuotes($this->_idSelector)." = ?";
+        $query = "DELETE FROM ".$this->tableName." WHERE ".$this->setQuotes($this->_idSelector)." = ?";
         $params = array($this->getId());
         
-        Debug::log($query);
+        self::$log[] = $query;
         
         try{
             $exec = $this->connector->prepare($query);
             $success = $exec->execute($params);
         }catch(Exception $e){
-            Debug::log($e);
+            self::$log[] = $e;
         }
         
         return $success;
@@ -576,6 +624,7 @@ class OrmWrapper {
     
     public function __set($name, $value){
         $this->_data[$name] = $value;
+        $this->_dirty[$name] = $value;
     }
     
     /*public function __isset(){
