@@ -1,5 +1,5 @@
 Jet-ORM
-================
+=======
 
 A light PHP5.3 ORM
 
@@ -86,7 +86,7 @@ Each of the filter can be chained.
 
 You can easily join two model with `join`. `join` ask the type of join (`LEFT`, `INNER`...) then the asked model to be join and an array or string of condition :
 
-````php 
+```php 
 <?php
 $user = new User();
 $project = new Project();
@@ -96,7 +96,7 @@ $userProjects = $user->where("id_user", "=", 1)
                      ->find_many();
 ```
 
-````php 
+```php 
 <?php
 
 $user = new User();
