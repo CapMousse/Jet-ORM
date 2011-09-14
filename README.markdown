@@ -154,7 +154,7 @@ $project->create(array(
     'name' => 'test',
     'user_id' => 1,
     'type' => 'unpaid'
-));````
+));```
 
 ###Modify
 
