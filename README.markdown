@@ -19,6 +19,7 @@ How To ?
 ========
 
 First, you need to pass a config array to the ORMConnector wich represent the db type, db name, adresse, login and password:
+
 ```php
 <?php
 OrmConnector::$config = array(
@@ -31,6 +32,7 @@ OrmConnector::$config = array(
 ```
 
 Then, you must create model extending the OrmWrapper named of your table name in camel case and the id column must have the table name inside. For exemple, the table `user_project` contain a `id_user_project` column and model is named `UserProject`.
+
 ```php
 class UserProject extends OrmWrapper{
     //your methods here
@@ -154,7 +156,8 @@ $project->create(array(
     'name' => 'test',
     'user_id' => 1,
     'type' => 'unpaid'
-));```
+));
+```
 
 ###Modify
 
