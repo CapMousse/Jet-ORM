@@ -163,19 +163,19 @@ $project->create(array(
 
 To modify a model, your just need to edit the asked property:
 
-'$project->name = "Not a test";`
+`$project->name = "Not a test";`
 
 ###Save
 
 To save the model, just use the `save()` method:
 
-'$project->save();`
+`$project->save();`
 
 ###Delete
 
 To delete the model, use the `delete()` method:
 
-'$project->delete();`
+`$project->delete();`
 
 ## Other
 
