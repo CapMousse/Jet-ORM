@@ -150,3 +150,9 @@ To save the model, just use the `save()` method:
 
 To delete the model, use the `delete()` method:
 '$project->delete();`
+
+## Other
+
+To change the id column name, you can use the `setIdName($name)` method.
+To quickly get the current id, your can use `getId()`
+To acess to the query log, use `OrmWrapper::$log`

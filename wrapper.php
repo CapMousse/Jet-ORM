@@ -383,19 +383,6 @@ class OrmWrapper {
     }
     
     /*
-     * whereId
-     * 
-     * compare id
-     * 
-     * @param   int $id     $id to be checked
-     * @return  current model
-     */
-    public function whereId($id){
-        $this->where($this->_idSelector, "=", $id);
-        return $this;
-    }
-    
-    /*
      * join
      * 
      * Create a join query
@@ -521,7 +508,7 @@ class OrmWrapper {
      */
     public function findOne($id = null){
         if(!is_null($id)){
-            $this->whereId($id);
+            $this->where($this->_idSelector, "=", $id);
         }
         $this->limit(1);
         $row = $this->run();
