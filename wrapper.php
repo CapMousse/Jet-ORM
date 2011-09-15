@@ -9,6 +9,7 @@ class OrmWrapper {
     private
         $_idSelector = "id",
         $_isNew = false,
+        $_rawQuery = null,
         $_distinct = false,
         $_resultSelector = array("*"),
         $_data = array(),
@@ -61,7 +62,11 @@ class OrmWrapper {
             return false;
         }
         
-        $query = $this->buildSelect();
+        if(is_null($this->_rawQuery)){
+            $query = $this->buildSelect();
+        }else{
+            $query = $this->_rawQuery;
+        }
         self::$log[] = $query;
         
         try{
@@ -603,6 +608,22 @@ class OrmWrapper {
         
         return $success;
        
+    }
+    
+    /*
+     * rawQuery
+     * 
+     * Send a "manual" query to the orm
+     * 
+     * @param   string $query   the query to be run
+     * @param   array  $values  values used in the query
+     * @return  object current model
+     */
+    public function rawQuery($query, $values = array()){
+        $this->_rawQuery = $query;
+        $this->_values = $values;
+        
+        return $this->findMany();
     }
     
     public function __get($name){
