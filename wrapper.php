@@ -27,9 +27,7 @@ class OrmWrapper {
     public static
         $log = array();
     
-    /*
-     * Wrapper constructor
-     * 
+    /**
      * Set the connector to database
      * Get and set the table name
      */
@@ -39,9 +37,7 @@ class OrmWrapper {
         $this->setIdName('id_'.str_replace(OrmConnector::$quoteSeparator, '', $this->tableName));
     }
     
-    /*
-     * parseTableName
-     * 
+    /**
      * Get the current model name and parse to table name
      * @return void
      */
@@ -50,9 +46,7 @@ class OrmWrapper {
         $this->tableName = $this->setQuotes(strtolower(preg_replace('/(?!^)[[:upper:]]/', '_\0', $this->class)));
     }
     
-    /*
-     * Run
-     * 
+    /**
      * Lauch the current query for selection 
      * 
      * @return array
@@ -84,9 +78,7 @@ class OrmWrapper {
         return $rows;
     }
     
-    /*
-     * buildSelect
-     * 
+    /**
      * Create the query used by the run method
      * 
      * @return string
@@ -103,9 +95,7 @@ class OrmWrapper {
         ));
     }
     
-    /*
-     * buildSelectStart
-     * 
+    /**
      * Create the start query for run method
      * 
      * @return string
@@ -122,9 +112,7 @@ class OrmWrapper {
         return $fragment;
     }
     
-    /*
-     * buildJoin
-     * 
+    /**
      * Create the join query for run method
      * 
      * @return string
@@ -137,9 +125,7 @@ class OrmWrapper {
         return join(" ", $this->_join);
     }
     
-    /*
-     * buildWhere
-     * 
+    /**
      * Create the where query for run method
      * 
      * @return string
@@ -159,9 +145,7 @@ class OrmWrapper {
         return "WHERE ".join(" AND ", $return);
     }
     
-    /*
-     * buildGroupBy
-     * 
+    /**
      * Create the Group By query for run method
      * 
      * @return string
@@ -174,9 +158,7 @@ class OrmWrapper {
         return "GROUP BY ".join(",", $this->_groupBy);
     }
     
-    /*
-     * buildOrderBy
-     * 
+    /**
      * Create the Order By query for run method
      * 
      * @return string
@@ -189,9 +171,7 @@ class OrmWrapper {
         return "ORBER BY ".join(",", $this->_orderBy).' '.$this->_order;
     }
     
-    /*
-     * buildLimit
-     * 
+    /**
      * Create the Limit query for run method
      * 
      * @return string
@@ -204,9 +184,7 @@ class OrmWrapper {
         return "LIMIT ".$this->_limit;
     }
     
-    /*
-     * buildOffset
-     * 
+    /**
      * Create the Offset query for run method
      * 
      * @return string
@@ -219,9 +197,7 @@ class OrmWrapper {
         return "OFFSET ".$this->_offset;
     }
     
-    /*
-     * buildInsert
-     * 
+    /**
      * Create the Insert query
      * 
      * @return string
@@ -238,9 +214,7 @@ class OrmWrapper {
         return $query;
     }
      
-    /*
-     * buildUpdate
-     * 
+    /**
      * Create the Update query
      * 
      * @return string
@@ -262,9 +236,7 @@ class OrmWrapper {
         return $query;
     }
     
-    /*
-     * hydrate
-     * 
+    /**
      * Hydrate the current model with send data
      * 
      * @param   array $data     array of data 
@@ -275,9 +247,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * joinIfNotEmpty
-     * 
+    /**
      * Join different element from array to a string
      * 
      * @param   array $joinArray     array of data 
@@ -295,9 +265,7 @@ class OrmWrapper {
         return join(" ", $returnArray);
     }
     
-    /*
-     * setQuotes
-     * 
+    /**
      * Add specific db quote to sent fragment
      * 
      * @param   mixed $fragment    $fragment to be quote
@@ -313,9 +281,7 @@ class OrmWrapper {
         return join('.', $parts);
     }
    
-    /*
-     * createInstance
-     * 
+    /**
      * Create instance from current model with specified row
      * 
      * @param   array $row
@@ -327,9 +293,7 @@ class OrmWrapper {
         return $instance;
     }
     
-    /*
-     * createPlaceholder
-     * 
+    /**
      * Create placeholder for data used in query
      * 
      * @param   array $dataArray
@@ -341,9 +305,7 @@ class OrmWrapper {
         return join(",", array_fill(0, $number, "?"));
     }
     
-    /*
-     * getId
-     * 
+    /**
      * Get id of current model
      * 
      * @return  int
@@ -352,9 +314,7 @@ class OrmWrapper {
         return $this->__get($this->_idSelector);
     }
     
-    /*
-     * setIdName
-     * 
+    /**
      * Set id column name for this model
      * 
      * @return  current model
@@ -365,9 +325,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * where
-     * 
+    /**
      * Create a where condition
      * 
      * @param   string $column      the column to be compared
@@ -387,9 +345,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * join
-     * 
+    /**
      * Create a join query
      * 
      * @param   string $type        type of join
@@ -407,9 +363,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * listJoinCondition
-     * 
+    /**
      * @param   array/string    $conditions
      * @return  string
      */
@@ -427,9 +381,7 @@ class OrmWrapper {
         return $conditions;
     }
     
-    /*
-     * listJoinCondition
-     * 
+    /**
      * @param   array/string    $conditions
      * @return  string
      */
@@ -447,9 +399,7 @@ class OrmWrapper {
         return $condition;
     }
     
-    /*
-     * Limit
-     * 
+    /**
      * Set a limit to the query
      * 
      * @param   int $limit
@@ -460,9 +410,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * Offset
-     * 
+    /**
      * Set a offet to the query
      * 
      * @param   int $offet
@@ -473,9 +421,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * Distinct
-     * 
+    /**
      * Set a distinct keyword to the query
      * 
      * @return  current model
@@ -485,9 +431,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * Create
-     * 
+    /**
      * Create a new model
      * 
      * @param   array $data   data to be insert in the model
@@ -503,9 +447,7 @@ class OrmWrapper {
         return $this;
     }
     
-    /*
-     * findOne
-     * 
+    /**
      * find the first elem of query
      * 
      * @param   array $id   search id
@@ -522,12 +464,10 @@ class OrmWrapper {
             return false;
         }
         
-        return $this->createInstance($row[0]);
+        return $this->hydrate($row[0]);
     }
     
-    /*
-     * findMany
-     * 
+    /**
      * find all elem of query
      * 
      * @return  model/false
@@ -537,9 +477,7 @@ class OrmWrapper {
         return $rows ? array_map(array($this, 'createInstance'), $rows) : false;
     }
     
-    /*
-     * save
-     * 
+    /**
      * save the current model
      * 
      * @return  boolean
@@ -586,9 +524,7 @@ class OrmWrapper {
         return $success;
     }
     
-    /*
-     * save
-     * 
+    /**
      * save the current model
      * 
      * @return  boolean
@@ -610,9 +546,7 @@ class OrmWrapper {
        
     }
     
-    /*
-     * rawQuery
-     * 
+    /**
      * Send a "manual" query to the orm
      * 
      * @param   string $query   the query to be run
@@ -624,6 +558,18 @@ class OrmWrapper {
         $this->_values = $values;
         
         return $this->findMany();
+    }
+    
+    /** 
+     * Get the rows name of table
+     * @return array
+     */
+    public function getRows(){
+        if(count($this->_data) === 0){
+            $test = $this->findOne();
+        }
+        
+        return array_keys($this->_data);
     }
     
     public function __get($name){
