@@ -572,6 +572,14 @@ class OrmWrapper {
         return array_keys($this->_data);
     }
     
+    /**
+     * Get all data.
+     * @return array
+     */
+    public function getAll(){
+        return $this->_data;
+    }
+    
     public function __get($name){
         return isset($this->_data[$name]) ? $this->_data[$name] : null;
     }
