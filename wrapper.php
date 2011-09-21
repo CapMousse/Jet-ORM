@@ -28,8 +28,8 @@ class OrmWrapper {
         $log = array();
     
     /**
-     * Set the connector to database
-     * Get and set the table name
+     * Set the connector to database. Define the table name. Define the id column
+     * @return void
      */
     function __construct(){
         $this->connector = OrmConnector::getInstance();
@@ -47,8 +47,7 @@ class OrmWrapper {
     }
     
     /**
-     * Lauch the current query for selection 
-     * 
+     * Lauch the current query for selection
      * @return array
      */
     private function run(){
@@ -80,7 +79,6 @@ class OrmWrapper {
     
     /**
      * Create the query used by the run method
-     * 
      * @return string
      */
     private function buildSelect(){
@@ -96,8 +94,7 @@ class OrmWrapper {
     }
     
     /**
-     * Create the start query for run method
-     * 
+     * Create the query begining
      * @return string
      */
     private function buildSelectStart(){
@@ -113,8 +110,7 @@ class OrmWrapper {
     }
     
     /**
-     * Create the join query for run method
-     * 
+     * Create the join query
      * @return string
      */
     private function buildJoin(){
@@ -126,8 +122,7 @@ class OrmWrapper {
     }
     
     /**
-     * Create the where query for run method
-     * 
+     * Create the where query 
      * @return string
      */
     private function buildWhere(){
@@ -146,8 +141,7 @@ class OrmWrapper {
     }
     
     /**
-     * Create the Group By query for run method
-     * 
+     * Create the Group By query
      * @return string
      */
     private function buildGroupBy(){
@@ -159,21 +153,19 @@ class OrmWrapper {
     }
     
     /**
-     * Create the Order By query for run method
-     * 
+     * Create the Order By query
      * @return string
      */
-    private function buildOrderBy(){
+    private function buildOrderBy($direction = null){
         if(!count($this->_orderBy) || is_null($this->_order)){
             return;
         }
         
-        return "ORBER BY ".join(",", $this->_orderBy).' '.$this->_order;
+        return "ORDER BY ".join(",", $this->_orderBy).' '.$this->_order;
     }
     
     /**
-     * Create the Limit query for run method
-     * 
+     * Create the Limit query
      * @return string
      */
     private function buildLimit(){
@@ -185,8 +177,7 @@ class OrmWrapper {
     }
     
     /**
-     * Create the Offset query for run method
-     * 
+     * Create the Offset query
      * @return string
      */
     private function buildOffset(){
@@ -199,7 +190,6 @@ class OrmWrapper {
     
     /**
      * Create the Insert query
-     * 
      * @return string
      */
     private function buildInsert(){
@@ -216,7 +206,6 @@ class OrmWrapper {
      
     /**
      * Create the Update query
-     * 
      * @return string
      */
     private function buildUpdate(){
@@ -238,9 +227,8 @@ class OrmWrapper {
     
     /**
      * Hydrate the current model with send data
-     * 
-     * @param   array $data     array of data 
-     * @return  current model
+     * @param   array $data array of data 
+     * @return  OrmWrapper
      */
     private function hydrate($data = array()){
         $this->_data = $data;
@@ -249,8 +237,7 @@ class OrmWrapper {
     
     /**
      * Join different element from array to a string
-     * 
-     * @param   array $joinArray     array of data 
+     * @param   array $joinArray array of data 
      * @return  string
      */
     private function joinIfNotEmpty($joinArray){
@@ -267,8 +254,7 @@ class OrmWrapper {
     
     /**
      * Add specific db quote to sent fragment
-     * 
-     * @param   mixed $fragment    $fragment to be quote
+     * @param   string $fragment string to be quoted
      * @return  string
      */
     private function setQuotes($fragment){
@@ -283,19 +269,17 @@ class OrmWrapper {
    
     /**
      * Create instance from current model with specified row
-     * 
-     * @param   array $row
-     * @return  Model
+     * @param   array $data  data to bound to new instance
+     * @return  OrmWrapper
      */
-    private function createInstance($row){
+    private function createInstance($data){
         $instance = clone $this;
-        $instance->hydrate($row);
+        $instance->hydrate($data);
         return $instance;
     }
     
     /**
      * Create placeholder for data used in query
-     * 
      * @param   array $dataArray
      * @return  string
      */
@@ -307,7 +291,6 @@ class OrmWrapper {
     
     /**
      * Get id of current model
-     * 
      * @return  int
      */
     public function getId(){
@@ -316,8 +299,7 @@ class OrmWrapper {
     
     /**
      * Set id column name for this model
-     * 
-     * @return  current model
+     * @return  OrmWrapper
      */
     public function setIdName($name){
         $this->_idSelector = $name;
@@ -326,12 +308,27 @@ class OrmWrapper {
     }
     
     /**
+     * Set the selected column in request
+     * @param   string/array $rows
+     * @return  OrmWrapper
+     */
+    public function select($rows){
+        if(is_array($rows)){
+            $rows = array_map(array($this, 'setQuotes'), $rows);
+        }else{
+            $rows = array($this->setQuotes($rows));
+        }
+        
+        $this->_resultSelector = $rows;
+        return $this;
+    }
+    
+    /**
      * Create a where condition
-     * 
      * @param   string $column      the column to be compared
      * @param   string $statement   type of comparison
      * @param   mixed  $value       value of comparison
-     * @return  current model
+     * @return  OrmWrapper
      */
     public function where($column, $statement, $value){
         if(!is_array($value)){
@@ -347,11 +344,10 @@ class OrmWrapper {
     
     /**
      * Create a join query
-     * 
-     * @param   string $type        type of join
-     * @param   object $table       table to be join
-     * @param   array/string $condition   condition of the join
-     * @return  current model
+     * @param   string $type                type of join
+     * @param   object $table               table to be join
+     * @param   array/string $condition     condition of the join
+     * @return  OrmWrapper
      */
     public function join($type, OrmWrapper $table, $conditions){
         $type = trim(strtoupper($type)." JOIN");
@@ -364,7 +360,7 @@ class OrmWrapper {
     }
     
     /**
-     * @param   array/string    $conditions
+     * @param   array/string $conditions
      * @return  string
      */
     private function listJoinCondition($conditions){
@@ -382,7 +378,7 @@ class OrmWrapper {
     }
     
     /**
-     * @param   array/string    $conditions
+     * @param   array/string  $conditions
      * @return  string
      */
     private function makeJoinCondition($condition){
@@ -401,7 +397,6 @@ class OrmWrapper {
     
     /**
      * Set a limit to the query
-     * 
      * @param   int $limit
      * @return  current model
      */
@@ -412,7 +407,6 @@ class OrmWrapper {
     
     /**
      * Set a offet to the query
-     * 
      * @param   int $offet
      * @return  current model
      */
@@ -423,7 +417,6 @@ class OrmWrapper {
     
     /**
      * Set a distinct keyword to the query
-     * 
      * @return  current model
      */
     public function distinct(){
@@ -432,8 +425,44 @@ class OrmWrapper {
     }
     
     /**
+     * Set the group for the query
+     * @param   string/array $rows
+     * @return  OrmWrapper
+     */
+    public function group($rows){
+        if(is_array($rows)){
+            foreach($rows as &$row){
+                $row = $this->setQuotes($row);
+            }
+        }else{
+            $rows = array($this->setQuotes($rows));
+        }
+        
+        $this->_groupBy = $rows;
+        return $this;
+    }
+    
+    /**
+     * Set the rows used for order and direction
+     * @param   string/array $rows
+     * @param   string $direction
+     * @return  current model
+     */
+    public function order($rows, $direction = 'ASC'){
+        if(is_array($rows)){
+            foreach($rows as &$row){
+                $row = $this->setQuotes($row);
+            }
+        }else{
+            $rows = array($this->setQuotes($rows));
+        }
+        $this->_orderBy = is_array($rows) ? $rows : array($rows);
+        $this->_order = (in_array($direction, array('ASC', 'DESC'))) ? $direction : null;
+        return $this;
+    }
+    
+    /**
      * Create a new model
-     * 
      * @param   array $data   data to be insert in the model
      * @return  current model
      */
@@ -449,9 +478,8 @@ class OrmWrapper {
     
     /**
      * find the first elem of query
-     * 
      * @param   array $id   search id
-     * @return  model/false
+     * @return  OrmWrapper/false
      */
     public function findOne($id = null){
         if(!is_null($id)){
@@ -469,8 +497,7 @@ class OrmWrapper {
     
     /**
      * find all elem of query
-     * 
-     * @return  model/false
+     * @return  OrmWrapper array/false
      */
     public function findMany(){
         $rows = $this->run();
@@ -478,8 +505,7 @@ class OrmWrapper {
     }
     
     /**
-     * save the current model
-     * 
+     * save the state of current OrmWrapper
      * @return  boolean
      */
     public function save(){
@@ -525,8 +551,7 @@ class OrmWrapper {
     }
     
     /**
-     * save the current model
-     * 
+     * Delete the current OrmWrapper
      * @return  boolean
      */
     public function delete(){

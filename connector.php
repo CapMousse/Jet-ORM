@@ -9,6 +9,10 @@ class OrmConnector {
         $config = array(),
         $quoteSeparator;
     
+    /**
+     * create the PDO object for request
+     * @return void
+     */
     protected function __construct(){
         if (!is_object(self::$connector)) {
             $connectionString = self::$config['type'].":host=".self::$config['host'].";dbname=".self::$config['base'];
@@ -25,11 +29,19 @@ class OrmConnector {
         }
     }
     
-    public function setConnector($connector) {
+    /**
+     * Set the PDO connector
+     * @param PDO $connector 
+     * @return void
+     */
+    private function setConnector($connector) {
         self::$connector = $connector;
         self::setQuoteSeparator();
     }
 
+    /**
+     * set the quote type for query
+     */
     public static function setQuoteSeparator() {
         if (is_null(self::$quoteSeparator)) {
             switch(self::$connector->getAttribute(PDO::ATTR_DRIVER_NAME)) {
@@ -49,6 +61,10 @@ class OrmConnector {
         }
     }
     
+    /**
+     * Singleton for OrmConnector
+     * @return OrmConnector 
+     */
     public static function getInstance(){
         if(!isset(self::$instance) || !isset(self::$connector)){
             self::$instance = new self;

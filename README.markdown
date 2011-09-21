@@ -84,6 +84,21 @@ To get data from result your just need to access to the property directly from t
 
 Each of the filter can be chained.
 
+###Select
+
+Set the selected row in the query.
+
+```php
+<?php
+
+$project->select('name')->findMany();
+
+$project->select(array( 
+            'name',
+            'desc'))
+        ->findMany();
+```
+
 ###Join
 
 You can easily join two model with `join`. `join` ask the type of join (`LEFT`, `INNER`...) then the asked model to be join and an array or string of condition :
@@ -117,27 +132,61 @@ $userProjects = $user->where("id_user", "=", 1)
 
 Where take three arguments: the column to be filtered then the statement and the result.
 
-`$projects = $this->where('type', '=', 'paid')->findMany();`
+```php
+<?php
+$projects = $this->where('type', '=', 'paid')->findMany();
 
-`$projects = $this->where('name', '!=', 'test')->findMany();`
+$projects = $this->where('name', '!=', 'test')->findMany();
+```
+
+###Group
+
+Set a `Group By` request. Group take a string or an array of rows to be grouped
+
+```php
+<?php
+$projects = $this->group('type')->findMany()
+
+$projects = $this->group(array('name', 'type'))->findMany();
+```
+
+###Order by
+
+Order by take two arguments : one or an array of column to order, direction of order
+
+```php
+<?php
+$projects = $this->order('name')->findMany();
+
+$projects = $this->order(array('id_project', 'name'), 'ASC')->findMany();
+```
 
 ###Limit
 
 Set the limit of your request
 
-`$projects = $this->limit(7)->findMany();`
+```php
+<?php
+$projects = $this->limit(7)->findMany();
+```
 
 ###Offset
 
 Set the offset of your request
 
-`$projects = $this->offset(12)->findMany();`
+```php
+<?php
+$projects = $this->offset(12)->findMany();
+```
 
 ###Distinct
 
 Set the request DISTINCT
 
-`$projects = $this->distinct()->findMany();`
+```php
+<?php
+$projects = $this->distinct()->findMany();
+```
 
 ##Create/Save/Delete
 
@@ -182,5 +231,7 @@ To delete the model, use the `delete()` method:
 To change the id column name, you can use the `setIdName($name)` method.
 
 To quickly get the current id, your can use `getId()`.
+
+To an array of all data contain, use `getAll()`.
 
 To acess to the query log, use `OrmWrapper::$log`
