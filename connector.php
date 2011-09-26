@@ -24,7 +24,7 @@ class OrmConnector {
                 $connector->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->setConnector($connector);
             }catch(Exception $e){
-                Debug::log($e);
+               echo $e;
             }
         }
     }
