@@ -26,10 +26,10 @@ class OrmWrapper {
     
     public static
         $log = array();
-    
+
     /**
      * Set the connector to database. Define the table name. Define the id column
-     * @return void
+     * @return \OrmWrapper
      */
     function __construct(){
         $this->connector = OrmConnector::getInstance();
@@ -115,7 +115,7 @@ class OrmWrapper {
      */
     private function buildJoin(){
         if(!count($this->_join)){
-            return;
+            return '';
         }
         
         return join(" ", $this->_join);
@@ -127,7 +127,7 @@ class OrmWrapper {
      */
     private function buildWhere(){
         if(!count($this->_where)){
-            return;
+            return '';
         }
         
         $return = array();
@@ -146,7 +146,7 @@ class OrmWrapper {
      */
     private function buildGroupBy(){
         if(!count($this->_groupBy)){
-            return;
+            return '';
         }
         
         return "GROUP BY ".join(",", $this->_groupBy);
@@ -154,11 +154,12 @@ class OrmWrapper {
     
     /**
      * Create the Order By query
+     * @param  $direction
      * @return string
      */
     private function buildOrderBy($direction = null){
         if(!count($this->_orderBy) || is_null($this->_order)){
-            return;
+            return '';
         }
         
         return "ORDER BY ".join(",", $this->_orderBy).' '.$this->_order;
@@ -170,7 +171,7 @@ class OrmWrapper {
      */
     private function buildLimit(){
         if(is_null($this->_limit)){
-            return;
+            return '';
         }
         
         return "LIMIT ".$this->_limit;
@@ -182,7 +183,7 @@ class OrmWrapper {
      */
     private function buildOffset(){
         if(is_null($this->_offset)){
-            return;
+            return '';
         }
         
         return "OFFSET ".$this->_offset;
@@ -299,6 +300,7 @@ class OrmWrapper {
     
     /**
      * Set id column name for this model
+     * @param   $name the id column name
      * @return  OrmWrapper
      */
     public function setIdName($name){
@@ -406,8 +408,8 @@ class OrmWrapper {
     }
     
     /**
-     * Set a offet to the query
-     * @param   int $offet
+     * Set a offset to the query
+     * @param   int $offset
      * @return  current model
      */
     public function offset($offset){
@@ -466,7 +468,7 @@ class OrmWrapper {
      * @param   array $data   data to be insert in the model
      * @return  current model
      */
-    public function create($data){
+    public function create($data = null){
         $this->_isNew = true;
         
         if(is_array($data)){
@@ -543,7 +545,7 @@ class OrmWrapper {
             $this->_isNew = false;
             
             if(is_null($this->getId())){
-                $this->__set[$this->_idSelector] = $this->connector->lastInsertId();
+                $this->set($this->_idSelector, $this->connector->lastInsertId());
             }
         }
         
@@ -608,15 +610,15 @@ class OrmWrapper {
     public function __get($name){
         return isset($this->_data[$name]) ? $this->_data[$name] : null;
     }
-    
-    public function __set($name, $value){
+
+    private function set($name, $value){
         $this->_data[$name] = $value;
         $this->_dirty[$name] = $value;
     }
     
-    /*public function __isset(){
-        
-    }*/
+    public function __set($name, $value){
+        $this->set($name, $value);
+    }
 }
 
 ?>
