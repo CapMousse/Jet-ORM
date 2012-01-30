@@ -66,7 +66,7 @@ class OrmWrapper {
             $query = $this->connector->prepare($query);
             $query->execute($this->_values);
         }catch(Exception $e){
-            self::$log[] = $e;
+            self::logError($e);
         }
         
         $rows = array();
@@ -538,7 +538,7 @@ class OrmWrapper {
             $query = $this->connector->prepare($query);
             $success = $query->execute($values);
         }catch(Exception $e){
-            self::$log[] = $e;
+            self::logError($e);
         }
         
         if($this->_isNew){
@@ -566,7 +566,7 @@ class OrmWrapper {
             $exec = $this->connector->prepare($query);
             $success = $exec->execute($params);
         }catch(Exception $e){
-            self::$log[] = $e;
+            self::logError($e);
         }
         
         return $success;
@@ -618,6 +618,14 @@ class OrmWrapper {
     
     public function __set($name, $value){
         $this->set($name, $value);
+    }
+
+    public static function logError($error){
+        if(class_exists('Log')){
+            Log::fatal($error);
+        }else{
+            self::$log[] = $error;
+        }
     }
 }
 

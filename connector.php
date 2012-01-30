@@ -24,7 +24,12 @@ class OrmConnector {
                 $connector->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->setConnector($connector);
             }catch(Exception $e){
-               echo $e;
+                //if the ORM is used with the Jet framework, use the Log class
+                if(class_exists('Log')){
+                    Log::fatal($e);
+                }else{
+                    error_reporting($e, E_USER_ERROR);
+                }
             }
         }
     }
