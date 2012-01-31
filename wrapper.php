@@ -71,7 +71,7 @@ class OrmWrapper {
         }
         
         $rows = array();
-        while($row = $query->fetch(PDO::FETCH_ASSOC)){
+        while($row = $preparedQuery->fetch(PDO::FETCH_ASSOC)){
             $rows[] = $row;
         }
         
