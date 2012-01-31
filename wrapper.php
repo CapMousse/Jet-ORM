@@ -628,12 +628,16 @@ class OrmWrapper {
         $this->set($name, $value);
     }
 
-    public static function logError($error, $query){
+    public static function logError($error, $query = null){
         if(class_exists('Log')){
-            Log::info($query);
+            if(null != $query){
+                Log::info($query);
+            }
             Log::fatal($error);
         }else{
-            self::$log[] = $query;
+            if(null != $query){
+                self::$log[] = $query;
+            }
             self::$log[] = $error;
         }
     }
