@@ -19,6 +19,7 @@ class OrmWrapper {
         $_joinTables = array(),
         $_where = array(),
         $_limit = null,
+        $_limitOffset = false,
         $_offset = null,
         $_order = null,
         $_orderBy = array(),
@@ -63,10 +64,10 @@ class OrmWrapper {
         self::$log[] = $query;
         
         try{
-            $query = $this->connector->prepare($query);
-            $query->execute($this->_values);
+            $preparedQuery = $this->connector->prepare($query);
+            $preparedQuery->execute($this->_values);
         }catch(Exception $e){
-            self::logError($e);
+            self::logError($e, $query);
         }
         
         $rows = array();
@@ -174,7 +175,7 @@ class OrmWrapper {
             return '';
         }
         
-        return "LIMIT ".$this->_limit;
+        return "LIMIT ".($this->_limitOffset ? $this->_limitOffset."," : "")." ".$this->_limit;
     }
     
     /**
@@ -396,14 +397,21 @@ class OrmWrapper {
         
         return $condition;
     }
-    
+
     /**
      * Set a limit to the query
-     * @param   int $limit
+     * @param   int offset
+     * @param   bool|int $line
      * @return  current model
      */
-    public function limit($limit){
-        $this->_limit = (int)$limit;
+    public function limit($offset, $line = false){
+        if(!$line){
+            $this->_limit = (int)$offset;
+        }else{
+            $this->_limitOffset = (int)$offset;
+            $this->_limit = (int)$line;
+        }
+
         return $this;
     }
     
@@ -620,10 +628,12 @@ class OrmWrapper {
         $this->set($name, $value);
     }
 
-    public static function logError($error){
+    public static function logError($error, $query){
         if(class_exists('Log')){
+            Log::info($query);
             Log::fatal($error);
         }else{
+            self::$log[] = $query;
             self::$log[] = $error;
         }
     }
