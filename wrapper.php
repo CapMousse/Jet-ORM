@@ -234,6 +234,8 @@ class OrmWrapper {
      */
     private function hydrate($data = array()){
         $this->_data = $data;
+        $this->_dirty = $data;
+
         return $this;
     }
     
@@ -543,10 +545,10 @@ class OrmWrapper {
         $success = false;
         
         try{
-            $query = $this->connector->prepare($query);
-            $success = $query->execute($values);
+            $preparedQuery = $this->connector->prepare($query);
+            $success = $preparedQuery->execute($values);
         }catch(Exception $e){
-            self::logError($e);
+            self::logError($e, $query);
         }
         
         if($this->_isNew){
