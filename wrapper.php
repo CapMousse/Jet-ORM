@@ -35,7 +35,7 @@ class OrmWrapper {
     function __construct(){
         $this->connector = OrmConnector::getInstance();
         $this->parseTableName();
-        $this->setIdName('id_'.str_replace(OrmConnector::$quoteSeparator, '', $this->tableName));
+        $this->setIdName('id_'.trim($this->tableName, OrmConnector::$quoteSeparator));
     }
     
     /**
@@ -49,7 +49,7 @@ class OrmWrapper {
     
     /**
      * Lauch the current query for selection
-     * @return array
+     * @return array/false
      */
     private function run(){
         if(!$this->connector){
@@ -68,6 +68,7 @@ class OrmWrapper {
             $preparedQuery->execute($this->_values);
         }catch(Exception $e){
             self::logError($e, $query);
+            return false;
         }
         
         $rows = array();
@@ -101,11 +102,21 @@ class OrmWrapper {
     private function buildSelectStart(){
         $resultColumns = join(', ', $this->_resultSelector);
 
+        $table = $this->tableName;
+        $resultColumns = $resultColumns != "*" ? $this->setQuotes($resultColumns) : $resultColumns;
+        $joinTables = '';
+
         if ($this->_distinct) {
-            $resultColumns = 'DISTINCT '.$resultColumns;
+            $resultColumns = 'DISTINCT $table'.$resultColumns;
         }
 
-        $fragment = "SELECT {$resultColumns} FROM " . $this->tableName;
+        if(count($this->_join)){
+            foreach($this->_joinTables as $joinTable){
+                $joinTables .= ", $joinTable->tableName.*";
+            }
+        }
+
+        $fragment = "SELECT $table.$resultColumns $joinTables FROM $table";
 
         return $fragment;
     }
@@ -226,6 +237,29 @@ class OrmWrapper {
         
         return $query;
     }
+
+    /**
+     * Create the Delete query
+     * @return string
+     */
+    private function buildDelete(){
+        $table = $this->tableName;
+        $id = $this->setQuotes($this->_idSelector);
+
+        $join = $this->buildJoin();
+
+        $deleteSelector = $table.'.*';
+
+        if(count($this->_joinTables)){
+            foreach($this->_joinTables as $joinTable){
+                $deleteSelector .=  ", $joinTable->tableName.*";
+            }
+        }
+
+        $query = "DELETE $deleteSelector FROM $table $join WHERE $table.$id = ?";
+
+        return $query;
+    }
     
     /**
      * Hydrate the current model with send data
@@ -303,13 +337,21 @@ class OrmWrapper {
     
     /**
      * Set id column name for this model
-     * @param   $name the id column name
+     * @param   String $name    id column name
      * @return  OrmWrapper
      */
     public function setIdName($name){
         $this->_idSelector = $name;
         
         return $this;
+    }
+
+    /**
+     * Get the current table id name
+     * @return  string
+     */
+    public function getIdName(){
+        return $this->_idSelector;
     }
     
     /**
@@ -346,20 +388,25 @@ class OrmWrapper {
         
         return $this;
     }
-    
+
     /**
      * Create a join query
      * @param   string $type                type of join
-     * @param   object $table               table to be join
+     * @param   \OrmWrapper $table          table to be join
      * @param   array/string $condition     condition of the join
      * @return  OrmWrapper
      */
-    public function join($type, OrmWrapper $table, $conditions){
+    public function join($type, OrmWrapper $table, $conditions = null){
         $type = trim(strtoupper($type)." JOIN");
-        $joinTable = $table->tableName;
-        
-        $this->_joinTables[] = $joinTable;
-        $this->_join[] = "$type $joinTable ON ".$this->listJoinCondition($conditions);
+
+        if(null === $conditions){
+            $conditions = $this->tableName.'.'.$this->setQuotes($table->getIdName()).' = '.$table->tableName.'.'.$this->setQuotes($table->getIdName());
+        }
+
+        $tableName = $table->tableName;
+
+        $this->_joinTables[] = $table;
+        $this->_join[] = "$type $tableName ON ".$this->listJoinCondition($conditions);
         
         return $this;
     }
@@ -391,8 +438,8 @@ class OrmWrapper {
             
             $joinTable = array_pop($this->_joinTables);
             list($firstCol, $statement, $lastCol) = $condition;
-            $firstCol = $this->tableName.".".$this->setQuotes($firstCol);
-            $lastCol = "$joinTable.".$this->setQuotes($lastCol);
+            $firstCol = $this->setQuotes($this->tableName).".".$this->setQuotes($firstCol);
+            $lastCol = $this->setQuotes($joinTable->tableName).".".$this->setQuotes($lastCol);
             
             return "$firstCol $statement $lastCol";
         }
@@ -402,9 +449,9 @@ class OrmWrapper {
 
     /**
      * Set a limit to the query
-     * @param   int offset
+     * @param   int $offset
      * @param   bool|int $line
-     * @return  current model
+     * @return  \OrmWrapper
      */
     public function limit($offset, $line = false){
         if(!$line){
@@ -420,7 +467,7 @@ class OrmWrapper {
     /**
      * Set a offset to the query
      * @param   int $offset
-     * @return  current model
+     * @return  \OrmWrapper
      */
     public function offset($offset){
         $this->_offset = (int)$offset;
@@ -429,7 +476,7 @@ class OrmWrapper {
     
     /**
      * Set a distinct keyword to the query
-     * @return  current model
+     * @return  \OrmWrapper
      */
     public function distinct(){
         $this->_distinct = true;
@@ -439,7 +486,7 @@ class OrmWrapper {
     /**
      * Set the group for the query
      * @param   string/array $rows
-     * @return  OrmWrapper
+     * @return  \OrmWrapper
      */
     public function group($rows){
         if(is_array($rows)){
@@ -458,7 +505,7 @@ class OrmWrapper {
      * Set the rows used for order and direction
      * @param   string/array $rows
      * @param   string $direction
-     * @return  current model
+     * @return  \OrmWrapper
      */
     public function order($rows, $direction = 'ASC'){
         if(is_array($rows)){
@@ -476,7 +523,7 @@ class OrmWrapper {
     /**
      * Create a new model
      * @param   array $data   data to be insert in the model
-     * @return  current model
+     * @return  \OrmWrapper
      */
     public function create($data = null){
         $this->_isNew = true;
@@ -524,8 +571,7 @@ class OrmWrapper {
         if(!$this->connector){
             return false;
         }
-        
-        $query = "";
+
         $values = array_values($this->_dirty);
         
         if($this->_isNew){
@@ -549,6 +595,7 @@ class OrmWrapper {
             $success = $preparedQuery->execute($values);
         }catch(Exception $e){
             self::logError($e, $query);
+            return false;
         }
         
         if($this->_isNew){
@@ -567,7 +614,8 @@ class OrmWrapper {
      * @return  boolean
      */
     public function delete(){
-        $query = "DELETE FROM ".$this->tableName." WHERE ".$this->setQuotes($this->_idSelector)." = ?";
+
+        $query = $this->buildDelete();
         $params = array($this->getId());
         
         self::$log[] = $query;
@@ -577,10 +625,10 @@ class OrmWrapper {
             $success = $exec->execute($params);
         }catch(Exception $e){
             self::logError($e);
+            return false;
         }
         
         return $success;
-       
     }
     
     /**
@@ -588,7 +636,7 @@ class OrmWrapper {
      * 
      * @param   string $query   the query to be run
      * @param   array  $values  values used in the query
-     * @return  object current model
+     * @return  \OrmWrapper
      */
     public function rawQuery($query, $values = array()){
         $this->_rawQuery = $query;
@@ -607,6 +655,31 @@ class OrmWrapper {
         }
         
         return array_keys($this->_data);
+    }
+
+    /**
+     * Reset the model to is initial state
+     * @return OrmWrapper
+     */
+    public function reset(){
+        $this->_isNew = false;
+        $this->_rawQuery = null;
+        $this->_distinct = false;
+        $this->_resultSelector = array("*");
+        $this->_data = array();
+        $this->_dirty = array();
+        $this->_values = array();
+        $this->_join = array();
+        $this->_joinTables = array();
+        $this->_where = array();
+        $this->_limit = null;
+        $this->_limitOffset = false;
+        $this->_offset = null;
+        $this->_order = null;
+        $this->_orderBy = array();
+        $this->_groupBy = array();
+
+        return $this;
     }
     
     /**
@@ -644,5 +717,3 @@ class OrmWrapper {
         }
     }
 }
-
-?>

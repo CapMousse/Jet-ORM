@@ -8,10 +8,10 @@ class OrmConnector {
     public static
         $config = array(),
         $quoteSeparator;
-    
+
     /**
      * create the PDO object for request
-     * @return void
+     * @return \OrmConnector
      */
     protected function __construct(){
         if (!is_object(self::$connector)) {
@@ -28,7 +28,7 @@ class OrmConnector {
                 if(class_exists('Log')){
                     Log::fatal($e);
                 }else{
-                    error_reporting($e, E_USER_ERROR);
+                    trigger_error($e->getMessage(), E_USER_ERROR);
                 }
             }
         }
@@ -68,7 +68,7 @@ class OrmConnector {
     
     /**
      * Singleton for OrmConnector
-     * @return OrmConnector 
+     * @return \OrmConnector
      */
     public static function getInstance(){
         if(!isset(self::$instance) || !isset(self::$connector)){

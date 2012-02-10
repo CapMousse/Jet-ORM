@@ -78,7 +78,7 @@ Where type is paid:
 
 To get data from result your just need to access to the property directly from the object:
 
-`$this->type;`
+`$this->name;`
 
 ##Filter
 
@@ -101,7 +101,7 @@ $project->select(array(
 
 ###Join
 
-You can easily join two model with `join`. `join` ask the type of join (`LEFT`, `INNER`...) then the asked model to be join and an array or string of condition :
+You can easily join two model with `join`. `join` ask the type of join (`LEFT`, `INNER`...) then the asked model to be join and an array or string of condition. If the string is empty, the ORM will atemp to find the name of the id column on the first model  :
 
 ```php 
 <?php
@@ -170,6 +170,11 @@ Set the limit of your request
 $projects = $this->limit(7)->findMany();
 ```
 
+```php
+<?php
+$projects = $this->limit(7, 3)->findMany();
+```
+
 ###Offset
 
 Set the offset of your request
@@ -228,10 +233,14 @@ To delete the model, use the `delete()` method:
 
 ## Other
 
-To change the id column name, you can use the `setIdName($name)` method.
+To change the id column name, you can use the `$model->setIdName('name')` method.
 
-To quickly get the current id, your can use `getId()`.
+To quickly get the current id, your can use `$model->getId()`.
 
-To an array of all data contain, use `getAll()`.
+To an array of all data contain, use `$model->getAll()`.
+
+To the rows name of table, use `$model->getRows()`.
+
+To reset the model to is initial state (empty), use `$model->reset()`.
 
 To acess to the query log, use `OrmWrapper::$log`
