@@ -107,7 +107,7 @@ class OrmWrapper {
         $joinTables = '';
 
         if ($this->_distinct) {
-            $resultColumns = 'DISTINCT $table'.$resultColumns;
+            $resultColumns = "DISTINCT $table.$resultColumns";
         }
 
         if(count($this->_join)){
