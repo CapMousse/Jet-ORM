@@ -51,7 +51,7 @@ class OrmWrapper {
      * Lauch the current query for selection
      * @return array/false
      */
-    private function run(){
+    public function run(){
         if(!$this->connector){
             return false;
         }
