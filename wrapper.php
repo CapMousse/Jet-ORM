@@ -52,7 +52,7 @@ class OrmWrapper {
      * @param bool $noResult
      * @return array/false
      */
-    public function run(){
+    public function run($noResult){
         if(!$this->connector){
             return false;
         }
