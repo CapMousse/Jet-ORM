@@ -15,7 +15,13 @@ class OrmConnector {
      */
     protected function __construct(){
         if (!is_object(self::$connector)) {
-            $connectionString = self::$config['type'].":host=".self::$config['host'].";dbname=".self::$config['base'];
+            
+            if(isset(self::$config['socket']) && !empty(self::$config['socket'])){
+                $connectionString = self::$config['socket'].";dbname=".self::$config['base'];
+            }else{
+                $connectionString = self::$config['type'].":host=".self::$config['host'].";dbname=".self::$config['base'];
+            }
+            
             $username = self::$config['log'];
             $password = self::$config['pass'];
             

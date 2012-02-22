@@ -49,6 +49,7 @@ class OrmWrapper {
     
     /**
      * Lauch the current query for selection
+     * @param bool $noResult
      * @return array/false
      */
     public function run(){
@@ -71,12 +72,16 @@ class OrmWrapper {
             return false;
         }
         
-        $rows = array();
-        while($row = $preparedQuery->fetch(PDO::FETCH_ASSOC)){
-            $rows[] = $row;
+        if(!$noResult){
+            $rows = array();
+            while($row = $preparedQuery->fetch(PDO::FETCH_ASSOC)){
+                $rows[] = $row;
+            }
+
+            return $rows;
+        }else{
+            return $preparedQuery;
         }
-        
-        return $rows;
     }
     
     /**
@@ -642,7 +647,7 @@ class OrmWrapper {
         $this->_rawQuery = $query;
         $this->_values = $values;
         
-        return $this->findMany();
+        return $this;
     }
     
     /** 
