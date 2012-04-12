@@ -1,10 +1,22 @@
 <?php
 
 class OrmWrapper {
-    public 
-        $class,
-        $connector,
-        $tableName = "";
+    /**
+     * The name of the current model
+     * @var string
+     */
+    public $class;
+
+    /**
+     * @var \PDO
+     */
+    public $connector;
+
+    /**
+     * The name of the current table
+     * @var string
+     */
+    public $tableName = "";
     
     private
         $_idSelector = "id",
@@ -30,7 +42,6 @@ class OrmWrapper {
 
     /**
      * Set the connector to database. Define the table name. Define the id column
-     * @return \OrmWrapper
      */
     function __construct(){
         $this->connector = OrmConnector::getInstance();
@@ -67,7 +78,7 @@ class OrmWrapper {
         try{
             $preparedQuery = $this->connector->prepare($query);
             $preparedQuery->execute($this->_values);
-        }catch(Exception $e){
+        }catch(PDOException $e){
             self::logError($e, $query);
             return false;
         }
@@ -150,11 +161,16 @@ class OrmWrapper {
         $return = array();
         
         foreach($this->_where as $where){
-            $return[] = $where[0];
-            $this->_values = array_merge($this->_values, $where[1]);
+            if(count($return) == 0){
+                $return[] = $where[1][0];
+            }else{
+                $return[] = $where[0]." ".$where[1][0];
+            }
+
+            $this->_values = array_merge($this->_values, $where[1][1]);
         }
         
-        return "WHERE ".join(" AND ", $return);
+        return "WHERE ".join(" ", $return);
     }
     
     /**
@@ -171,10 +187,9 @@ class OrmWrapper {
     
     /**
      * Create the Order By query
-     * @param  $direction
      * @return string
      */
-    private function buildOrderBy($direction = null){
+    private function buildOrderBy(){
         if(!count($this->_orderBy) || is_null($this->_order)){
             return '';
         }
@@ -377,21 +392,48 @@ class OrmWrapper {
     
     /**
      * Create a where condition
-     * @param   string $column      the column to be compared
-     * @param   string $statement   type of comparison
-     * @param   mixed  $value       value of comparison
+     * @param   string $column          the column to be compared
+     * @param   string $statement       type of comparison
+     * @param   mixed  $value           value of comparison
+     * @param   boolean|string  $type   type of where
      * @return  OrmWrapper
      */
-    public function where($column, $statement, $value){
+    public function where($column, $statement, $value, $type = false){
         if(!is_array($value)){
             $value = array($value);
+        }
+
+        if($type == false){
+            $type = "AND";
         }
         
         $column = $this->setQuotes($column);
         
-        $this->_where[] = array(" $column $statement ? ", $value);
+        $this->_where[] = array($type, array(" $column $statement ? ", $value));
         
         return $this;
+    }
+
+    /**
+     * Helper for where to make AND condition
+     * @param   string $column          the column to be compared
+     * @param   string $statement       type of comparison
+     * @param   mixed  $value           value of comparison
+     * @return OrmWrapper
+     */
+    public function andWhere($column, $statement, $value){
+        return $this->where($column, $statement, $value, 'AND');
+    }
+
+    /**
+     * Helper for where to make OR condition
+     * @param   string $column          the column to be compared
+     * @param   string $statement       type of comparison
+     * @param   mixed  $value           value of comparison
+     * @return OrmWrapper
+     */
+    public function orWhere($column, $statement, $value){
+        return $this->where($column, $statement, $value, 'OR');
     }
 
     /**
@@ -561,7 +603,7 @@ class OrmWrapper {
     
     /**
      * find all elem of query
-     * @return  OrmWrapper array/false
+     * @return  OrmWrapper[]/false
      */
     public function findMany(){
         $rows = $this->run();
@@ -592,8 +634,6 @@ class OrmWrapper {
         
         self::$log[] = $query;
         self::$log[] = $values;
-        
-        $success = false;
         
         try{
             $preparedQuery = $this->connector->prepare($query);
@@ -656,7 +696,7 @@ class OrmWrapper {
      */
     public function getRows(){
         if(count($this->_data) === 0){
-            $test = $this->findOne();
+            $this->findOne();
         }
         
         return array_keys($this->_data);

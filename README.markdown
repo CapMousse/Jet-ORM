@@ -18,7 +18,7 @@ Released under a [BSD license](http://en.wikipedia.org/wiki/BSD_licenses)
 How To ?
 ========
 
-First, you need to pass a config array to the ORMConnector wich represent the db type, db name, adresse, login and password:
+First, you need to pass a config array to the ORMConnector wich represent the db type, db name, adresse, login and password :
 
 ```php
 <?php
@@ -28,6 +28,16 @@ OrmConnector::$config = array(
     'base'  => 'jet',
     'log'   => 'root',
     'pass'  => 'root'
+);
+```
+
+Or you can use the Socket method :
+
+```php
+<?php
+OrmConnector::$config = array(
+    'socket'  => 'yourSocker',
+    'base'  => 'jet'
 );
 ```
 
@@ -215,7 +225,7 @@ $project->create(array(
 
 ###Modify
 
-To modify a model, your just need to edit the asked property:
+To modify data of a model, your just need to edit the asked property:
 
 `$project->name = "Not a test";`
 
@@ -241,6 +251,6 @@ To an array of all data contain, use `$model->getAll()`.
 
 To the rows name of table, use `$model->getRows()`.
 
-To reset the model to is initial state (empty), use `$model->reset()`.
+To reset the model to is initial state use `$model->reset()`.
 
-To acess to the query log, use `OrmWrapper::$log`
+To access to the query log, use `OrmWrapper::$log`

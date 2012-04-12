@@ -1,13 +1,28 @@
 <?php
 
 class OrmConnector {
-    protected static
-        $instance,
-        $connector;
-    
-    public static
-        $config = array(),
-        $quoteSeparator;
+    /**
+     * Current instance of the connector
+     * @var \OrmConnector
+     */
+    protected static $instance;
+
+    /**
+     * @var \PDO
+     */
+    protected static $connector;
+
+    /**
+     * The configuration array of the PDO connector
+     * @var array
+     */
+    public static $config = array();
+
+    /**
+     * The quote separator for the asked database
+     * @var string
+     */
+    public static $quoteSeparator;
 
     /**
      * create the PDO object for request
@@ -74,7 +89,7 @@ class OrmConnector {
     
     /**
      * Singleton for OrmConnector
-     * @return \OrmConnector
+     * @return \PDO
      */
     public static function getInstance(){
         if(!isset(self::$instance) || !isset(self::$connector)){
