@@ -78,7 +78,7 @@ class OrmWrapper {
         try{
             $preparedQuery = $this->connector->prepare($query);
             $preparedQuery->execute($this->_values);
-        }catch(PDOException $e){
+        }catch(Exception $e){
             self::logError($e, $query);
             return false;
         }
@@ -122,9 +122,9 @@ class OrmWrapper {
         $resultColumns = $resultColumns != "*" ? $this->setQuotes($resultColumns) : $resultColumns;
         $joinTables = '';
 
-        if ($this->_distinct) {
-            $resultColumns = "DISTINCT $table.$resultColumns";
-        }
+        $resultColumns = $this->_distinct ?
+            "DISTINCT $table.$resultColumns":
+            "$table.$resultColumns";
 
         if(count($this->_join)){
             foreach($this->_joinTables as $joinTable){
@@ -132,7 +132,7 @@ class OrmWrapper {
             }
         }
 
-        $fragment = "SELECT $table.$resultColumns $joinTables FROM $table";
+        $fragment = "SELECT $resultColumns $joinTables FROM $table";
 
         return $fragment;
     }
@@ -751,7 +751,7 @@ class OrmWrapper {
     public static function logError($error, $query = null){
         if(class_exists('Log')){
             if(null != $query){
-                Log::info($query);
+                Log::warning($query);
             }
             Log::fatal($error);
         }else{
