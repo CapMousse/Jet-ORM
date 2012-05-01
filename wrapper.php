@@ -354,6 +354,15 @@ class OrmWrapper {
     public function getId(){
         return $this->__get($this->_idSelector);
     }
+
+    /**
+     * Set id of current model
+     * @param mixed $id
+     */
+    public function setId($id){
+        $this->__set($this->_idSelector, $id);
+        $this->_isNew = true;
+    }
     
     /**
      * Set id column name for this model
