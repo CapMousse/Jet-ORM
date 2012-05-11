@@ -593,7 +593,7 @@ class OrmWrapper {
     
     /**
      * find the first elem of query
-     * @param   array $id   search id
+     * @param   int $id   search id
      * @return  OrmWrapper/false
      */
     public function findOne($id = null){
@@ -618,7 +618,30 @@ class OrmWrapper {
         $rows = $this->run();
         return $rows ? array_map(array($this, 'createInstance'), $rows) : false;
     }
-    
+
+    /**
+     * Count the number of lines from the asked model
+     * @return Int|Boolean
+     */
+    public function rowCount(){
+        if(!$this->connector){
+            return false;
+        }
+
+        $query = "SELECT ".OrmConnector::$quoteSeparator.$this->_idSelector.OrmConnector::$quoteSeparator." FROM ".$this->tableName;
+        self::$log[] = $query;
+
+        try{
+            $preparedQuery = $this->connector->prepare($query);
+            $preparedQuery->execute($this->_values);
+        }catch(Exception $e){
+            self::logError($e, $query);
+            return false;
+        }
+
+        return $preparedQuery->rowCount();
+    }
+
     /**
      * save the state of current OrmWrapper
      * @return  boolean
@@ -743,20 +766,41 @@ class OrmWrapper {
     public function getAll(){
         return $this->_data;
     }
-    
+
+    /**
+     * Get a data
+     * @param $name
+     * @return mixed|null
+     */
     public function __get($name){
         return isset($this->_data[$name]) ? $this->_data[$name] : null;
     }
 
+    /**
+     * Set a data
+     * @param $name
+     * @param $value
+     */
     private function set($name, $value){
         $this->_data[$name] = $value;
         $this->_dirty[$name] = $value;
     }
-    
+
+    /**
+     * Set a data
+     * @param $name
+     * @param $value
+     */
     public function __set($name, $value){
         $this->set($name, $value);
     }
 
+    /**
+     * Log an error to the Log class or the internal log array
+     * @static
+     * @param $error
+     * @param null $query
+     */
     public static function logError($error, $query = null){
         if(class_exists('Log')){
             if(null != $query){
