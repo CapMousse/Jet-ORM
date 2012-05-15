@@ -476,7 +476,10 @@ class OrmWrapper {
             $returnedConditions = "";
             
             foreach($conditions as $key => $value){
-                $returnedConditions[] = ($key ? $key : "").$this->makeJoinCondition($value);
+                $key = is_int($key) ? "" : $key." ";
+                $value = is_array($value) ? "(".$this->listJoinCondition($value).")" : $this->makeJoinCondition($value);
+
+                $returnedConditions[] = "$key$value";
             }
             
             return join(" ", $returnedConditions);

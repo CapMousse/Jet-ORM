@@ -119,7 +119,7 @@ $user = new User();
 $project = new Project();
 
 $userProjects = $user->where("id_user", "=", 1)
-                     ->join('LEFT', $project, 'user.id_user = project.id_user')
+                     ->join('LEFT', $project)
                      ->find_many();
 ```
 
@@ -131,9 +131,12 @@ $project = new Project();
 
 $userProjects = $user->where("id_user", "=", 1)
                      ->join('LEFT', $project, array(
-                          ""    => 'user.id_user = project.user_id',
+                          'user.id_user = project.user_id',
                           "AND" => 'user.id_project = project.project_id',
-                          "OR"  => 'user.name != project.name'
+                          "OR"  => array(
+                            'user.id_parent = project.id_parent',
+                            "AND" => 'user.id_project != project.id_project'
+                          )
                      ))
                      ->find_many();
 ```

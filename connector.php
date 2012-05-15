@@ -41,7 +41,7 @@ class OrmConnector {
             $password = self::$config['pass'];
             
             try{
-                $connector = new PDO($connectionString, $username, $password, null);
+                $connector = new PDO($connectionString, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
                 $connector->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->setConnector($connector);
             }catch(Exception $e){
@@ -99,5 +99,3 @@ class OrmConnector {
         return self::$connector;
     }
 }
-
-?>
