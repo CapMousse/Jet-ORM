@@ -41,8 +41,9 @@ class OrmConnector {
             $password = self::$config['pass'];
             
             try{
-                $connector = new PDO($connectionString, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+                $connector = new PDO($connectionString, $username, $password);
                 $connector->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $connector->query("SET NAMES utf8");
                 $this->setConnector($connector);
             }catch(Exception $e){
                 //if the ORM is used with the Jet framework, use the Log class
